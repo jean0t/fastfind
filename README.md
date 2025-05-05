@@ -1,21 +1,21 @@
 # fastfind
 
-A brief description of what the project does.  
-TODO: Project description  
+Searches directories till it finds the file with the matching name and/or the maching extension and prints its path.
 
 ## Installation
 
-Instructions to install or build.  
-TODO: Make the installation Guide  
+Go to the releases page and download the binary (available for linux), set it in a directory in the path.  
+`mv fastfind /usr/local/bin` -> must be root to run  
+Now you can call it from your terminal.
+`fastfind -h`  
 
 ## Usage
 
-Examples of how to run the project.  
-TODO: Make the examples  
+`fastfind -path . -name main -ext .go`  
 
 ## License
 
-gpl-3 © 2025 jean0t  
+mit © 2025 jean0t  
 
 ## Contributions
 
