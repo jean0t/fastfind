@@ -11,6 +11,7 @@ Now you can call it from your terminal.
 
 ## Usage
 
+All the flags to use can be resumed in this single line:  
 `fastfind -path . -name main -ext .go`  
 
 ## License
