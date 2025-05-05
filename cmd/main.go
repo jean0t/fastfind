@@ -25,50 +25,46 @@ func cli_flags() {
     flag.BoolVar(&includeDirs, "dirs", false, "Include directories in search results")
 }
 
+func walkDir(path string, wg *sync.WaitGroup, fileChan chan<- string) {
+    defer wg.Done()
+
+    entries, err := os.ReadDir(path)
+    if err != nil {
+        return
+    }
+
+    for _, entry := range entries {
+        fullPath := filepath.Join(path, entry.Name())
+
+        if entry.IsDir() {
+            wg.Add(1)
+            go walkDir(fullPath, wg, fileChan)
+        } else if pattern != "" && strings.Contains(entry.Name(), pattern) {
+            fileChan <- fullPath
+        } else if extFilter != "" && strings.HasSuffix(entry.Name(), extFilter) {
+            fileChan <- fullPath
+        }
+
+    }
+}
+
 
 func main() {
     cli_flags()
     flag.Parse()
 
     var wg sync.WaitGroup
-    var fileChan chan string = make(chan string)
+    var fileChan chan string = make(chan string, 100)
 
-    wg.Add(1)
     go func() {
-        defer wg.Done()
-        err := filepath.WalkDir(rootDir, func(path string, d os.DirEntry, err error) error {
-            if err != nil {
-                fmt.Fprintf(os.Stderr, "Error accessing path %q: %v", path, err)
-                return nil
-            }
-
-            if !includeDirs && d.IsDir() {
-                return nil
-            }
-
-            if pattern != "" && !strings.Contains(d.Name(), pattern) {
-                return nil
-            }
-
-            if extFilter != "" && !strings.HasSuffix(d.Name(), extFilter) {
-                return nil
-            }
-
-            fileChan <- path
-            return nil
-        })
-        if err != nil {
-            fmt.Fprintf(os.Stderr, "Walk error: %v\n", err)
+        for file := range fileChan {
+            fmt.Println(file)
         }
     }()
 
-    go func() {
-        wg.Wait()
-        close(fileChan)
-    }()
+    wg.Add(1)
+    go walkDir(rootDir, &wg, fileChan)
 
-    for f := range fileChan {
-        fmt.Println(f)
-    }
-
+    wg.Wait()
+    close(fileChan)
 }
